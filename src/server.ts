@@ -1,15 +1,25 @@
-import express, { Request, Response } from 'express'
-import bodyParser from 'body-parser'
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import routes from './routes/index';
+import logger from './utils/logger';
 
-const app: express.Application = express()
-const address: string = "0.0.0.0:3000"
+const app: express.Application = express();
+const port = 3000;
+const address = `0.0.0.0:${port}`;
 
-app.use(bodyParser.json())
+const corsOptions = {
+  origin: address,
+  optionsSuccessStatus: 200
+};
 
-app.get('/', function (req: Request, res: Response) {
-    res.send('Hello World!')
-})
+app.all('*', logger);
+app.use(cors(corsOptions));
+app.use(bodyParser.json());
+app.use('/', routes);
+
+app.use(bodyParser.json());
 
 app.listen(3000, function () {
-    console.log(`starting app on: ${address}`)
-})
+  console.log(`starting app on: ${address}`);
+});
