@@ -1,19 +1,18 @@
+import { Store } from './store';
 
 export class Product {
-
   constructor(
     readonly id: string,
     readonly name: string,
     /// The price of the product in cents
     readonly price: number,
-    readonly category: string | null,
-  ){}
+    readonly category: string | null
+  ) {}
 
   static fromRow(row: ProductRow): Product {
     return new Product(row.id, row.name, row.price, row.category);
   }
 }
-
 
 interface ProductRow {
   id: string;
@@ -26,4 +25,52 @@ export type ProductInput = {
   name: string;
   price: number;
   category: string | null;
+};
+
+export class ProductStore extends Store {
+  async index(): Promise<Product[]> {
+    const conn = await super.connectToDB();
+
+    try {
+      const sql = 'SELECT * FROM products';
+      const result = await conn.query(sql);
+
+      return result.rows.map(Product.fromRow);
+    } catch (err) {
+      throw new Error(`Unable to get products: ${err}`);
+    } finally {
+      conn.release();
+    }
+  }
+
+  async show(id: string): Promise<Product> {
+    const conn = await super.connectToDB();
+
+    try {
+      const sql = 'SELECT * FROM products WHERE id=($1)';
+      const result = await conn.query(sql, [id]);
+
+      return Product.fromRow(result.rows[0]);
+    } catch (err) {
+      throw new Error(`Unable to get product ${id}: ${err}`);
+    } finally {
+      conn.release();
+    }
+  }
+
+  async create(productInput: ProductInput): Promise<Product> {
+    const conn = await super.connectToDB();
+
+    try {
+      const sql = 'INSERT INTO products (name, price, category) VALUES($1, $2, $3) RETURNING *';
+      const result = await conn.query(sql, [productInput.name, productInput.price, productInput.category]);
+
+      const newProduct = result.rows[0];
+      return Product.fromRow(newProduct);
+    } catch (err) {
+      throw new Error(`Unable to create product: ${err}`);
+    } finally {
+      conn.release();
+    }
+  }
 }

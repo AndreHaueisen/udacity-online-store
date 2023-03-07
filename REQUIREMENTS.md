@@ -8,8 +8,8 @@ These are the notes from a meeting with the frontend developer that describe wha
 - Index 
 - Show
 - Create [token required]
-- [OPTIONAL] Top 5 most popular products 
-- [OPTIONAL] Products by category (args: product category)
+- [OPTIONAL] Top 5 most popular products // TODO
+- [OPTIONAL] Products by category (args: product category) // TODO
 
 #### Users
 - Index [token required]
@@ -22,7 +22,7 @@ These are the notes from a meeting with the frontend developer that describe wha
 
 ## Data Shapes
 #### Product
--  id
+- id
 - name
 - price
 - [OPTIONAL] category

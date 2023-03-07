@@ -10,7 +10,7 @@
     "build": "npx tsc",
     "prettier": "prettier --write --config .prettierrc.json \"src/**/*.ts\" \"spec/**/*.ts\"",
     "test": "npm run prettier && NODE_ENV=test db-migrate --env test up && jest --bail=false --detectOpenHandles ; NODE_ENV=test db-migrate --env test down",
-    "clear_test_db": "NODE_ENV=test db-migrate --env test down"
+    "reset_test_db": "NODE_ENV=test db-migrate --env test reset"
   },
   "author": "Udacity",
   "license": "ISC",
@@ -40,7 +40,7 @@
     "jasmine": "^3.6.4",
     "jasmine-spec-reporter": "^6.0.0",
     "jasmine-ts": "^0.3.0",
-    "jest": "^29.4.3",
+    "jest": "^29.5.0",
     "nodemon": "^2.0.21",
     "prettier": "^2.8.4",
     "ts-jest": "^29.0.5",

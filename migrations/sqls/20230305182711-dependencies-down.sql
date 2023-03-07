@@ -1,2 +1,2 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE TYPE status AS ENUM('open', 'cancelled', 'completed');
+DROP EXTENSION IF EXISTS "uuid-ossp";
+DROP TYPE IF EXISTS status;

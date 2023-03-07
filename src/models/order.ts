@@ -4,9 +4,9 @@ export class Order {
     readonly productIds: [string],
     readonly productCount: number,
     readonly userId: string,
-    readonly status: OrderStatus,
-  ){}
-  
+    readonly status: OrderStatus
+  ) {}
+
   static fromRow(row: OrderRow): Order {
     const status = OrderStatus[row.status as keyof typeof OrderStatus];
     return new Order(row.id, row.product_ids, row.product_count, row.user_id, status);
@@ -24,15 +24,15 @@ interface OrderRow {
 enum OrderStatus {
   open = 'open',
   cancelled = 'cancelled',
-  completed = 'completed',
+  completed = 'completed'
 }
 
 export type CreateOrderInput = {
   productIds: [string];
   productCount: number;
   userId: string;
-}
+};
 
 export type UpdateOrderInput = {
   status: OrderStatus;
-}
+};
