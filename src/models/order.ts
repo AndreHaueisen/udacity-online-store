@@ -1,3 +1,5 @@
+import { Store } from './store';
+
 export class Order {
   constructor(
     readonly id: string,
@@ -36,3 +38,5 @@ export type CreateOrderInput = {
 export type UpdateOrderInput = {
   status: OrderStatus;
 };
+
+export class OrderStore extends Store {}

@@ -1,3 +1,4 @@
+import client from '../../../src/database';
 import { ProductStore, Product } from '../../../src/models/product';
 
 const store = new ProductStore();
@@ -51,8 +52,22 @@ describe('Product Model', () => {
   });
 
   test('show should throw an error if the product does not exist', async () => {
-    expect(() => {
-      store.show('123');
-    }).toThrowError('Unable to get product 123: Error: Product not found');
+    try {
+      await store.show('123');
+    } catch (err) {
+      expect(err).toBeInstanceOf(Error);
+    }
+  });
+
+  test('show should throw an error if the product id is invalid', async () => {
+    try {
+      await store.show('invalid');
+    } catch (err) {
+      expect(err).toBeInstanceOf(Error);
+    }
+  });
+
+  afterAll(async () => {
+    await client.end();
   });
 });

@@ -9,7 +9,7 @@
     "watch": "tsc-watch --esModuleInterop src/server.ts --outDir ./dist --onSuccess \"node ./dist/server.js\"",
     "build": "npx tsc",
     "prettier": "prettier --write --config .prettierrc.json \"src/**/*.ts\" \"spec/**/*.ts\"",
-    "test": "npm run prettier && NODE_ENV=test db-migrate --env test up && jest --bail=false --detectOpenHandles ; NODE_ENV=test db-migrate --env test down",
+    "test": "npm run prettier && NODE_ENV=test db-migrate --env test up && jest --bail=false --detectOpenHandles ; npm run reset_test_db",
     "reset_test_db": "NODE_ENV=test db-migrate --env test reset"
   },
   "author": "Udacity",
