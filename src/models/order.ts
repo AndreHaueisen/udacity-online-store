@@ -134,4 +134,23 @@ export class OrderStore extends Store {
       conn.release();
     }
   }
+
+  async lastUserOrder(userId: string): Promise<Order> {
+    const conn = await super.connectToDB();
+
+    try {
+      const sql = 'SELECT * FROM orders WHERE user_id=($1) ORDER BY id DESC LIMIT 1';
+      const result = await conn.query(sql, [userId]);
+
+      if (result.rows.length === 0) {
+        throw new Error(`This user has no orders`);
+      }
+
+      return Order.fromRow(result.rows[0]);
+    } catch (err) {
+      throw new Error(`Unable to get orders for user ${userId}: ${err}`);
+    } finally {
+      conn.release();
+    }
+  }
 }

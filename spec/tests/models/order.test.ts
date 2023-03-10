@@ -1,7 +1,23 @@
 import { OrderStore, Order, OrderStatus } from '../../../src/models/order';
+import { UserStore, User } from '../../../src/models/user';
 import client from '../../../src/database';
 
+const userStore = new UserStore(10, 'pepper');
 const store = new OrderStore();
+
+beforeAll(async () => {
+  await createFakeUser();
+});
+
+async function createFakeUser(): Promise<void> {
+  const fakeUser = {
+    firstName: 'John',
+    lastName: 'Doe',
+    password: 'password'
+  };
+
+  await userStore.create(fakeUser);
+}
 
 describe('Order Model', () => {
   test('should have an index method', () => {
@@ -25,16 +41,18 @@ describe('Order Model', () => {
   });
 
   test('create should add an order', async () => {
+    const fakeUser = await getFakeUser();
+
     const order1 = {
       productsIds: ['1'],
       productsQuantities: [2],
-      userId: '1'
+      userId: fakeUser.id
     };
 
     const order2 = {
       productsIds: ['abc', 'def'],
       productsQuantities: [1, 1],
-      userId: '2'
+      userId: fakeUser.id
     };
 
     const result1 = await store.create(order1);
@@ -49,21 +67,23 @@ describe('Order Model', () => {
   });
 
   test('index should return all the orders', async () => {
+    const fakeUser = await getFakeUser();
     const result = await store.index();
 
     expect(result.length).toBe(2);
-    expect(result[0]).toEqual(new Order(result[0].id, ['1'], [2], '1', OrderStatus.active));
-    expect(result[1]).toEqual(new Order(result[1].id, ['abc', 'def'], [1, 1], '2', OrderStatus.active));
+    expect(result[0]).toEqual(new Order(result[0].id, ['1'], [2], fakeUser.id, OrderStatus.active));
+    expect(result[1]).toEqual(new Order(result[1].id, ['abc', 'def'], [1, 1], fakeUser.id, OrderStatus.active));
   });
 
   test('show should return the correct order', async () => {
+    const fakeUser = await getFakeUser();
     const result = await store.index();
 
     const order1 = await store.show(result[0].id);
     const order2 = await store.show(result[1].id);
 
-    expect(order1).toEqual(new Order(order1.id, ['1'], [2], '1', OrderStatus.active));
-    expect(order2).toEqual(new Order(order2.id, ['abc', 'def'], [1, 1], '2', OrderStatus.active));
+    expect(order1).toEqual(new Order(order1.id, ['1'], [2], fakeUser.id, OrderStatus.active));
+    expect(order2).toEqual(new Order(order2.id, ['abc', 'def'], [1, 1], fakeUser.id, OrderStatus.active));
   });
 
   test('show should throw an error if the order does not exist', async () => {
@@ -75,6 +95,7 @@ describe('Order Model', () => {
   });
 
   test('addProduct should add a product to an order', async () => {
+    const fakeUser = await getFakeUser();
     const result = await store.index();
 
     const addProductInput1 = {
@@ -89,11 +110,13 @@ describe('Order Model', () => {
 
     const updatedOrder1 = await store.addProduct(result[0].id, addProductInput1);
 
-    expect(updatedOrder1).toEqual(new Order(updatedOrder1.id, ['1', '4'], [2, 5], '1', OrderStatus.active));
+    expect(updatedOrder1).toEqual(new Order(updatedOrder1.id, ['1', '4'], [2, 5], fakeUser.id, OrderStatus.active));
 
     const updatedOrder2 = await store.addProduct(result[0].id, addProductInput2);
 
-    expect(updatedOrder2).toEqual(new Order(updatedOrder2.id, ['1', '4', '5'], [2, 5, 1], '1', OrderStatus.active));
+    expect(updatedOrder2).toEqual(
+      new Order(updatedOrder2.id, ['1', '4', '5'], [2, 5, 1], fakeUser.id, OrderStatus.active)
+    );
   });
 
   test('delete should delete an order', async () => {
@@ -129,3 +152,8 @@ describe('Order Model', () => {
     await client.end();
   });
 });
+
+async function getFakeUser(): Promise<User> {
+  const users = await userStore.index();
+  return users[0];
+}
