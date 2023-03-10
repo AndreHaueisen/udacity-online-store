@@ -3,6 +3,19 @@ import { UserStore, User } from '../../../src/models/user';
 
 const store = new UserStore(10, 'pepper');
 
+beforeAll(async () => {
+  await deletesAllUsers();
+});
+
+async function deletesAllUsers(): Promise<void> {
+  const users = await store.index();
+
+  // delete all users
+  if (users.length) {
+    await client.query('DELETE FROM users');
+  }
+}
+
 describe('User model', () => {
   test('should have an index method', () => {
     expect(store.index).toBeDefined();
@@ -65,7 +78,7 @@ describe('User model', () => {
     const users = await store.index();
     const firstUser = users[0];
 
-    const result = await store.authenticate(firstUser.id, 'password');
+    const result = await store.authenticate({ id: firstUser.id, password: 'password' });
     expect(result).toEqual(new User(firstUser.id, 'John', 'Doe', firstUser.password));
   });
 
@@ -73,7 +86,7 @@ describe('User model', () => {
     const users = await store.index();
     const firstUser = users[0];
 
-    const result = await store.authenticate(firstUser.id, 'wrongpassword');
+    const result = await store.authenticate({ id: firstUser.id, password: 'wrongpassword' });
     expect(result).toBeNull();
   });
 

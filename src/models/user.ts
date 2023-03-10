@@ -22,6 +22,11 @@ export type UserInput = {
   password: string;
 };
 
+export type AuthenticationInput = {
+  id: string;
+  password: string;
+};
+
 export class UserStore extends Store {
   constructor(readonly saltRounds: number, readonly pepper: string) {
     super();
@@ -78,23 +83,23 @@ export class UserStore extends Store {
     }
   }
 
-  async authenticate(id: string, password: string): Promise<User | null> {
+  async authenticate(authenticationInput: AuthenticationInput): Promise<User | null> {
     const conn = await super.connectToDB();
 
     try {
       const sql = 'SELECT * FROM users WHERE id=($1)';
-      const result = await conn.query(sql, [id]);
+      const result = await conn.query(sql, [authenticationInput.id]);
 
       if (result.rows.length) {
         const user = User.fromRow(result.rows[0]);
-        if (bcrypt.compareSync(password + this.pepper, user.password)) {
+        if (bcrypt.compareSync(authenticationInput.password + this.pepper, user.password)) {
           return user;
         }
       }
 
       return null;
     } catch (err) {
-      throw new Error(`Unable to authenticate user ${id}. ${err}`);
+      throw new Error(`Unable to authenticate user ${authenticationInput.id}. ${err}`);
     } finally {
       conn.release();
     }

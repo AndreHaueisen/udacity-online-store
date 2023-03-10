@@ -119,6 +119,15 @@ describe('Order Model', () => {
     );
   });
 
+  test('lastUserOrder should return the last order of a user', async () => {
+    const fakeUser = await getFakeUser();
+
+    const orders = await store.index();
+    const lastOrder = await store.lastUserOrder(fakeUser.id);
+
+    expect(lastOrder).toEqual(orders[0]);
+  });
+
   test('delete should delete an order', async () => {
     const result = await store.index();
     const firstOrder = await store.show(result[0].id);
