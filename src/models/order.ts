@@ -3,6 +3,7 @@ import { Store } from './store';
 export class Order {
   constructor(
     readonly id: string,
+    readonly createdAt: Date,
     readonly productsIds: string[],
     readonly productsQuantities: number[],
     readonly userId: string,
@@ -11,12 +12,13 @@ export class Order {
 
   static fromRow(row: OrderRow): Order {
     const status = OrderStatus[row.status as keyof typeof OrderStatus];
-    return new Order(row.id, row.products_ids, row.products_quantities, row.user_id, status);
+    return new Order(row.id, row.created_at, row.products_ids, row.products_quantities, row.user_id, status);
   }
 }
 
 interface OrderRow {
   id: string;
+  created_at: Date;
   products_ids: string[];
   products_quantities: number[];
   user_id: string;
@@ -45,7 +47,7 @@ export class OrderStore extends Store {
     const conn = await super.connectToDB();
 
     try {
-      const sql = 'SELECT * FROM orders';
+      const sql = 'SELECT * FROM orders ORDER BY created_at ASC';
       const result = await conn.query(sql);
 
       return result.rows.map(Order.fromRow);
@@ -135,11 +137,11 @@ export class OrderStore extends Store {
     }
   }
 
-  async lastUserOrder(userId: string): Promise<Order> {
+  async currentUserOrder(userId: string): Promise<Order> {
     const conn = await super.connectToDB();
 
     try {
-      const sql = 'SELECT * FROM orders WHERE user_id=($1) ORDER BY id DESC LIMIT 1';
+      const sql = 'SELECT * FROM orders WHERE user_id=($1) ORDER BY created_at DESC LIMIT 1';
       const result = await conn.query(sql, [userId]);
 
       if (result.rows.length === 0) {
@@ -149,6 +151,40 @@ export class OrderStore extends Store {
       return Order.fromRow(result.rows[0]);
     } catch (err) {
       throw new Error(`Unable to get orders for user ${userId}: ${err}`);
+    } finally {
+      conn.release();
+    }
+  }
+
+  async completeOrder(id: string): Promise<Order> {
+    const conn = await super.connectToDB();
+
+    try {
+      const sql = 'UPDATE orders SET status=($1) WHERE id=($2) RETURNING *';
+      const result = await conn.query(sql, [OrderStatus.complete, id]);
+
+      if (result.rows.length === 0) {
+        throw new Error(`Order ${id} not found`);
+      }
+
+      return Order.fromRow(result.rows[0]);
+    } catch (err) {
+      throw new Error(`Unable to complete order ${id}: ${err}`);
+    } finally {
+      conn.release();
+    }
+  }
+
+  async userCompletedOrders(userId: string): Promise<Order[]> {
+    const conn = await super.connectToDB();
+
+    try {
+      const sql = 'SELECT * FROM orders WHERE user_id=($1) AND status=($2)';
+      const result = await conn.query(sql, [userId, OrderStatus.complete]);
+
+      return result.rows.map(Order.fromRow);
+    } catch (err) {
+      throw new Error(`Unable to get completed orders for user ${userId}: ${err}`);
     } finally {
       conn.release();
     }

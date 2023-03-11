@@ -54,5 +54,4 @@ users.post('/', async (req, res) => {
   }
 });
 
-
 export default users;

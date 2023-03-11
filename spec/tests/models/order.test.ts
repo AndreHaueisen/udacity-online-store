@@ -59,20 +59,38 @@ describe('Order Model', () => {
     const result2 = await store.create(order2);
 
     expect(result1).toEqual(
-      new Order(result1.id, order1.productsIds, order1.productsQuantities, order1.userId, result1.status)
+      new Order(
+        result1.id,
+        result1.createdAt,
+        order1.productsIds,
+        order1.productsQuantities,
+        order1.userId,
+        result1.status
+      )
     );
     expect(result2).toEqual(
-      new Order(result2.id, order2.productsIds, order2.productsQuantities, order2.userId, result2.status)
+      new Order(
+        result2.id,
+        result2.createdAt,
+        order2.productsIds,
+        order2.productsQuantities,
+        order2.userId,
+        result2.status
+      )
     );
   });
 
-  test('index should return all the orders', async () => {
+  test('index should return all the orders sorted by created_at descending', async () => {
     const fakeUser = await getFakeUser();
     const result = await store.index();
 
     expect(result.length).toBe(2);
-    expect(result[0]).toEqual(new Order(result[0].id, ['1'], [2], fakeUser.id, OrderStatus.active));
-    expect(result[1]).toEqual(new Order(result[1].id, ['abc', 'def'], [1, 1], fakeUser.id, OrderStatus.active));
+    expect(result[0]).toEqual(
+      new Order(result[0].id, result[0].createdAt, ['1'], [2], fakeUser.id, OrderStatus.active)
+    );
+    expect(result[1]).toEqual(
+      new Order(result[1].id, result[1].createdAt, ['abc', 'def'], [1, 1], fakeUser.id, OrderStatus.active)
+    );
   });
 
   test('show should return the correct order', async () => {
@@ -82,8 +100,10 @@ describe('Order Model', () => {
     const order1 = await store.show(result[0].id);
     const order2 = await store.show(result[1].id);
 
-    expect(order1).toEqual(new Order(order1.id, ['1'], [2], fakeUser.id, OrderStatus.active));
-    expect(order2).toEqual(new Order(order2.id, ['abc', 'def'], [1, 1], fakeUser.id, OrderStatus.active));
+    expect(order1).toEqual(new Order(order1.id, order1.createdAt, ['1'], [2], fakeUser.id, OrderStatus.active));
+    expect(order2).toEqual(
+      new Order(order2.id, order2.createdAt, ['abc', 'def'], [1, 1], fakeUser.id, OrderStatus.active)
+    );
   });
 
   test('show should throw an error if the order does not exist', async () => {
@@ -110,22 +130,61 @@ describe('Order Model', () => {
 
     const updatedOrder1 = await store.addProduct(result[0].id, addProductInput1);
 
-    expect(updatedOrder1).toEqual(new Order(updatedOrder1.id, ['1', '4'], [2, 5], fakeUser.id, OrderStatus.active));
+    expect(updatedOrder1).toEqual(
+      new Order(updatedOrder1.id, updatedOrder1.createdAt, ['1', '4'], [2, 5], fakeUser.id, OrderStatus.active)
+    );
 
     const updatedOrder2 = await store.addProduct(result[0].id, addProductInput2);
 
     expect(updatedOrder2).toEqual(
-      new Order(updatedOrder2.id, ['1', '4', '5'], [2, 5, 1], fakeUser.id, OrderStatus.active)
+      new Order(updatedOrder2.id, updatedOrder2.createdAt, ['1', '4', '5'], [2, 5, 1], fakeUser.id, OrderStatus.active)
     );
   });
 
-  test('lastUserOrder should return the last order of a user', async () => {
+  test('completeOrder should change the status of an order to complete', async () => {
+    const result = await store.index();
+
+    const completedOrder = await store.completeOrder(result[0].id);
+    const updatedOrder = await store.show(result[0].id);
+
+    expect(completedOrder).toEqual(
+      new Order(
+        updatedOrder.id,
+        updatedOrder.createdAt,
+        updatedOrder.productsIds,
+        updatedOrder.productsQuantities,
+        updatedOrder.userId,
+        OrderStatus.complete
+      )
+    );
+  });
+
+  test('userCompletedOrders should return all the completed orders of a user', async () => {
+    const fakeUser = await getFakeUser();
+
+    const completedOrders = await store.userCompletedOrders(fakeUser.id);
+    const updatedOrder = await store.show(completedOrders[0].id);
+
+    expect(completedOrders.length).toBe(1);
+    expect(completedOrders[0]).toEqual(
+      new Order(
+        updatedOrder.id,
+        updatedOrder.createdAt,
+        updatedOrder.productsIds,
+        updatedOrder.productsQuantities,
+        fakeUser.id,
+        OrderStatus.complete
+      )
+    );
+  });
+
+  test('currentUserOrder should return the most recent order of a user', async () => {
     const fakeUser = await getFakeUser();
 
     const orders = await store.index();
-    const lastOrder = await store.lastUserOrder(fakeUser.id);
+    const lastOrder = await store.currentUserOrder(fakeUser.id);
 
-    expect(lastOrder).toEqual(orders[0]);
+    expect(lastOrder).toEqual(orders[1]);
   });
 
   test('delete should delete an order', async () => {
@@ -137,6 +196,7 @@ describe('Order Model', () => {
     expect(deletedOrder).toEqual(
       new Order(
         firstOrder.id,
+        firstOrder.createdAt,
         firstOrder.productsIds,
         firstOrder.productsQuantities,
         firstOrder.userId,

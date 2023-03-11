@@ -1,16 +1,26 @@
 import client from '../../../src/database';
 import { UserStore, User } from '../../../src/models/user';
+import { OrderStore } from '../../../src/models/order';
 
+const ordersStore = new OrderStore();
 const store = new UserStore(10, 'pepper');
 
 beforeAll(async () => {
+  await deleteAllOrders();
   await deletesAllUsers();
 });
+
+async function deleteAllOrders(): Promise<void> {
+  const orders = await ordersStore.index();
+
+  if (orders.length) {
+    await client.query('DELETE FROM orders');
+  }
+}
 
 async function deletesAllUsers(): Promise<void> {
   const users = await store.index();
 
-  // delete all users
   if (users.length) {
     await client.query('DELETE FROM users');
   }
@@ -57,6 +67,7 @@ describe('User model', () => {
     const result = await store.index();
 
     expect(result.length).toBe(2);
+
     const firstUser = result[0];
     const secondUser = result[1];
 
