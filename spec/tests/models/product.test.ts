@@ -20,7 +20,7 @@ describe('Product Model', () => {
     const result1 = await store.create({
       name: 'Fake One',
       price: 1000,
-      category: 'Category Two'
+      category: 'Category One'
     });
 
     const result2 = await store.create({
@@ -29,16 +29,24 @@ describe('Product Model', () => {
       category: 'Category Two'
     });
 
-    expect(result1).toEqual(new Product(result1.id, 'Fake One', 1000, 'Category Two'));
+    const result3 = await store.create({
+      name: 'Fake Three',
+      price: 3000,
+      category: 'Category One'
+    });
+
+    expect(result1).toEqual(new Product(result1.id, 'Fake One', 1000, 'Category One'));
     expect(result2).toEqual(new Product(result2.id, 'Fake Two', 2000, 'Category Two'));
+    expect(result3).toEqual(new Product(result3.id, 'Fake Three', 3000, 'Category One'));
   });
 
   test('index should return all the products', async () => {
     const result = await store.index();
 
-    expect(result.length).toBe(2);
-    expect(result[0]).toEqual(new Product(result[0].id, 'Fake One', 1000, 'Category Two'));
+    expect(result.length).toBe(3);
+    expect(result[0]).toEqual(new Product(result[0].id, 'Fake One', 1000, 'Category One'));
     expect(result[1]).toEqual(new Product(result[1].id, 'Fake Two', 2000, 'Category Two'));
+    expect(result[2]).toEqual(new Product(result[2].id, 'Fake Three', 3000, 'Category One'));
   });
 
   test('show should return the correct product', async () => {
@@ -46,9 +54,11 @@ describe('Product Model', () => {
 
     const product1 = await store.show(result[0].id);
     const product2 = await store.show(result[1].id);
+    const product3 = await store.show(result[2].id);
 
-    expect(product1).toEqual(new Product(product1.id, 'Fake One', 1000, 'Category Two'));
+    expect(product1).toEqual(new Product(product1.id, 'Fake One', 1000, 'Category One'));
     expect(product2).toEqual(new Product(product2.id, 'Fake Two', 2000, 'Category Two'));
+    expect(product3).toEqual(new Product(product3.id, 'Fake Three', 3000, 'Category One'));
   });
 
   test('show should throw an error if the product does not exist', async () => {
@@ -65,6 +75,14 @@ describe('Product Model', () => {
     } catch (err) {
       expect(err).toBeInstanceOf(Error);
     }
+  });
+
+  test('byCategory should return all the products in a category', async () => {
+    const result = await store.byCategory('Category One');
+
+    expect(result.length).toBe(2);
+    expect(result[0]).toEqual(new Product(result[0].id, 'Fake One', 1000, 'Category One'));
+    expect(result[1]).toEqual(new Product(result[1].id, 'Fake Three', 3000, 'Category One'));
   });
 
   afterAll(async () => {

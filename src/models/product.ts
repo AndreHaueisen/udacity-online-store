@@ -77,4 +77,19 @@ export class ProductStore extends Store {
       conn.release();
     }
   }
+
+  async byCategory(category: string): Promise<Product[]> {
+    const conn = await super.connectToDB();
+
+    try {
+      const sql = 'SELECT * FROM products WHERE category=($1)';
+      const result = await conn.query(sql, [category]);
+
+      return result.rows.map(Product.fromRow);
+    } catch {
+      throw new Error(`Unable to get products in category ${category}`);
+    } finally {
+      conn.release();
+    }
+  }
 }
