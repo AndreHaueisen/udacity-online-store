@@ -1,12 +1,15 @@
-import { OrderStore, Order, OrderStatus } from '../../../src/models/order';
+import { OrderStore, Order, OrderStatus, ProductOrder } from '../../../src/models/order';
 import { UserStore, User } from '../../../src/models/user';
+import { ProductStore } from '../../../src/models/product';
 import client from '../../../src/database';
 
 const userStore = new UserStore(10, 'pepper');
+const productStore = new ProductStore();
 const store = new OrderStore();
 
 beforeAll(async () => {
   await createFakeUser();
+  await createFakeProduct();
 });
 
 async function createFakeUser(): Promise<void> {
@@ -17,6 +20,16 @@ async function createFakeUser(): Promise<void> {
   };
 
   await userStore.create(fakeUser);
+}
+
+async function createFakeProduct(): Promise<void> {
+  const fakeProduct = {
+    name: 'test product',
+    price: 1000,
+    category: 'test'
+  };
+
+  await productStore.create(fakeProduct);
 }
 
 describe('Order Model', () => {
@@ -36,48 +49,22 @@ describe('Order Model', () => {
     expect(store.addProduct).toBeDefined();
   });
 
-  test('should have a delete method', () => {
-    expect(store.delete).toBeDefined();
-  });
-
   test('create should add an order', async () => {
     const fakeUser = await getFakeUser();
 
     const order1 = {
-      productsIds: ['1'],
-      productsQuantities: [2],
       userId: fakeUser.id
     };
 
     const order2 = {
-      productsIds: ['abc', 'def'],
-      productsQuantities: [1, 1],
       userId: fakeUser.id
     };
 
     const result1 = await store.create(order1);
     const result2 = await store.create(order2);
 
-    expect(result1).toEqual(
-      new Order(
-        result1.id,
-        result1.createdAt,
-        order1.productsIds,
-        order1.productsQuantities,
-        order1.userId,
-        result1.status
-      )
-    );
-    expect(result2).toEqual(
-      new Order(
-        result2.id,
-        result2.createdAt,
-        order2.productsIds,
-        order2.productsQuantities,
-        order2.userId,
-        result2.status
-      )
-    );
+    expect(result1).toEqual(new Order(result1.id, result1.createdAt, order1.userId, result1.status));
+    expect(result2).toEqual(new Order(result2.id, result2.createdAt, order2.userId, result2.status));
   });
 
   test('index should return all the orders sorted by created_at descending', async () => {
@@ -85,12 +72,8 @@ describe('Order Model', () => {
     const result = await store.index();
 
     expect(result.length).toBe(2);
-    expect(result[0]).toEqual(
-      new Order(result[0].id, result[0].createdAt, ['1'], [2], fakeUser.id, OrderStatus.active)
-    );
-    expect(result[1]).toEqual(
-      new Order(result[1].id, result[1].createdAt, ['abc', 'def'], [1, 1], fakeUser.id, OrderStatus.active)
-    );
+    expect(result[0]).toEqual(new Order(result[0].id, result[0].createdAt, fakeUser.id, OrderStatus.active));
+    expect(result[1]).toEqual(new Order(result[1].id, result[1].createdAt, fakeUser.id, OrderStatus.active));
   });
 
   test('show should return the correct order', async () => {
@@ -100,10 +83,8 @@ describe('Order Model', () => {
     const order1 = await store.show(result[0].id);
     const order2 = await store.show(result[1].id);
 
-    expect(order1).toEqual(new Order(order1.id, order1.createdAt, ['1'], [2], fakeUser.id, OrderStatus.active));
-    expect(order2).toEqual(
-      new Order(order2.id, order2.createdAt, ['abc', 'def'], [1, 1], fakeUser.id, OrderStatus.active)
-    );
+    expect(order1).toEqual(new Order(order1.id, order1.createdAt, fakeUser.id, OrderStatus.active));
+    expect(order2).toEqual(new Order(order2.id, order2.createdAt, fakeUser.id, OrderStatus.active));
   });
 
   test('show should throw an error if the order does not exist', async () => {
@@ -114,31 +95,26 @@ describe('Order Model', () => {
     }
   });
 
-  test('addProduct should add a product to an order', async () => {
-    const fakeUser = await getFakeUser();
+  test('addProduct should add a product to the product_order table', async () => {
     const result = await store.index();
+    const order1 = await store.show(result[0].id);
+    const product1 = (await productStore.index())[0];
 
     const addProductInput1 = {
-      productId: '4',
+      productId: product1.id,
       productQuantity: 5
     };
 
     const addProductInput2 = {
-      productId: '5',
+      productId: product1.id,
       productQuantity: 1
     };
 
-    const updatedOrder1 = await store.addProduct(result[0].id, addProductInput1);
+    const productOrder1 = await store.addProduct(order1.id, addProductInput1);
+    expect(productOrder1).toEqual(new ProductOrder(productOrder1.id, order1.id, product1.id, 5));
 
-    expect(updatedOrder1).toEqual(
-      new Order(updatedOrder1.id, updatedOrder1.createdAt, ['1', '4'], [2, 5], fakeUser.id, OrderStatus.active)
-    );
-
-    const updatedOrder2 = await store.addProduct(result[0].id, addProductInput2);
-
-    expect(updatedOrder2).toEqual(
-      new Order(updatedOrder2.id, updatedOrder2.createdAt, ['1', '4', '5'], [2, 5, 1], fakeUser.id, OrderStatus.active)
-    );
+    const productOrder2 = await store.addProduct(order1.id, addProductInput2);
+    expect(productOrder2).toEqual(new ProductOrder(productOrder2.id, order1.id, product1.id, 1));
   });
 
   test('completeOrder should change the status of an order to complete', async () => {
@@ -148,14 +124,7 @@ describe('Order Model', () => {
     const updatedOrder = await store.show(result[0].id);
 
     expect(completedOrder).toEqual(
-      new Order(
-        updatedOrder.id,
-        updatedOrder.createdAt,
-        updatedOrder.productsIds,
-        updatedOrder.productsQuantities,
-        updatedOrder.userId,
-        OrderStatus.complete
-      )
+      new Order(updatedOrder.id, updatedOrder.createdAt, updatedOrder.userId, OrderStatus.complete)
     );
   });
 
@@ -167,14 +136,7 @@ describe('Order Model', () => {
 
     expect(completedOrders.length).toBe(1);
     expect(completedOrders[0]).toEqual(
-      new Order(
-        updatedOrder.id,
-        updatedOrder.createdAt,
-        updatedOrder.productsIds,
-        updatedOrder.productsQuantities,
-        fakeUser.id,
-        OrderStatus.complete
-      )
+      new Order(updatedOrder.id, updatedOrder.createdAt, fakeUser.id, OrderStatus.complete)
     );
   });
 
@@ -187,37 +149,8 @@ describe('Order Model', () => {
     expect(lastOrder).toEqual(orders[1]);
   });
 
-  test('delete should delete an order', async () => {
-    const result = await store.index();
-    const firstOrder = await store.show(result[0].id);
-
-    const deletedOrder = await store.delete(firstOrder.id);
-
-    expect(deletedOrder).toEqual(
-      new Order(
-        firstOrder.id,
-        firstOrder.createdAt,
-        firstOrder.productsIds,
-        firstOrder.productsQuantities,
-        firstOrder.userId,
-        firstOrder.status
-      )
-    );
-
-    const orders = await store.index();
-
-    expect(orders.length).toBe(1);
-  });
-
-  test('delete should throw an error if the order does not exist', async () => {
-    try {
-      await store.delete('123');
-    } catch (err) {
-      expect(err).toBeInstanceOf(Error);
-    }
-  });
-
   afterAll(async () => {
+    await clearTables();
     await client.end();
   });
 });
@@ -225,4 +158,11 @@ describe('Order Model', () => {
 async function getFakeUser(): Promise<User> {
   const users = await userStore.index();
   return users[0];
+}
+
+async function clearTables(): Promise<void> {
+  await client.query('DELETE FROM product_order');
+  await client.query('DELETE FROM orders');
+  await client.query('DELETE FROM users');
+  await client.query('DELETE FROM products');
 }

@@ -9,7 +9,7 @@ These are the notes from a meeting with the frontend developer that describe wha
 - Show
 - Create [token required]
 - [OPTIONAL] Top 5 most popular products // TODO
-- [OPTIONAL] Products by category (args: product category) // TODO
+- [OPTIONAL] Products by category (args: product category)
 
 #### Users
 - Index [token required]

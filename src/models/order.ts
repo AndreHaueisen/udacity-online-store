@@ -1,26 +1,19 @@
 import { Store } from './store';
 
+// Order ----------------------------------------------------------------------
+
 export class Order {
-  constructor(
-    readonly id: string,
-    readonly createdAt: Date,
-    readonly productsIds: string[],
-    readonly productsQuantities: number[],
-    readonly userId: string,
-    readonly status: OrderStatus
-  ) {}
+  constructor(readonly id: string, readonly createdAt: Date, readonly userId: string, readonly status: OrderStatus) {}
 
   static fromRow(row: OrderRow): Order {
     const status = OrderStatus[row.status as keyof typeof OrderStatus];
-    return new Order(row.id, row.created_at, row.products_ids, row.products_quantities, row.user_id, status);
+    return new Order(row.id, row.created_at, row.user_id, status);
   }
 }
 
 interface OrderRow {
   id: string;
   created_at: Date;
-  products_ids: string[];
-  products_quantities: number[];
   user_id: string;
   status: OrderStatus;
 }
@@ -32,10 +25,25 @@ export enum OrderStatus {
 }
 
 export type CreateOrderInput = {
-  productsIds: string[];
-  productsQuantities: number[];
   userId: string;
 };
+
+// ProductOrder ----------------------------------------------------------------
+
+export class ProductOrder {
+  constructor(readonly id: string, readonly orderId: string, readonly productId: string, readonly quantity: number) {}
+
+  static fromRow(row: ProductOrderRow): ProductOrder {
+    return new ProductOrder(row.id, row.order_id, row.product_id, row.quantity);
+  }
+}
+
+interface ProductOrderRow {
+  id: string;
+  order_id: string;
+  product_id: string;
+  quantity: number;
+}
 
 export type AddProductInput = {
   productId: string;
@@ -81,14 +89,8 @@ export class OrderStore extends Store {
     const conn = await super.connectToDB();
 
     try {
-      const sql =
-        'INSERT INTO orders (products_ids, products_quantities, user_id, status) VALUES ($1, $2, $3, $4) RETURNING *';
-      const result = await conn.query(sql, [
-        createOrderInput.productsIds,
-        createOrderInput.productsQuantities,
-        createOrderInput.userId,
-        OrderStatus.active
-      ]);
+      const sql = 'INSERT INTO orders (user_id, status) VALUES ($1, $2) RETURNING *';
+      const result = await conn.query(sql, [createOrderInput.userId, OrderStatus.active]);
 
       return Order.fromRow(result.rows[0]);
     } catch (err) {
@@ -98,40 +100,16 @@ export class OrderStore extends Store {
     }
   }
 
-  async addProduct(id: string, addOrderInput: AddProductInput): Promise<Order> {
+  async addProduct(id: string, addProductInput: AddProductInput): Promise<ProductOrder> {
     const conn = await super.connectToDB();
 
     try {
-      const order = await this.show(id);
-      const sql =
-        'UPDATE orders SET products_ids=($1), products_quantities=($2), status=($3) WHERE id=($4) RETURNING *';
-      order.productsIds.push(addOrderInput.productId);
-      order.productsQuantities.push(addOrderInput.productQuantity);
+      const sql = 'INSERT INTO product_order (order_id, product_id, quantity) VALUES ($1, $2, $3) RETURNING *';
+      const result = await conn.query(sql, [id, addProductInput.productId, addProductInput.productQuantity]);
 
-      const result = await conn.query(sql, [order.productsIds, order.productsQuantities, order.status, id]);
-
-      return Order.fromRow(result.rows[0]);
+      return ProductOrder.fromRow(result.rows[0]);
     } catch (err) {
       throw new Error(`Unable to add product to order ${id}: ${err}`);
-    } finally {
-      conn.release();
-    }
-  }
-
-  async delete(id: string): Promise<Order> {
-    const conn = await super.connectToDB();
-
-    try {
-      const sql = 'DELETE FROM orders WHERE id=($1) RETURNING *';
-      const result = await conn.query(sql, [id]);
-
-      if (result.rows.length === 0) {
-        throw new Error(`Order ${id} not found`);
-      }
-
-      return Order.fromRow(result.rows[0]);
-    } catch (err) {
-      throw new Error(`Unable to delete order ${id}: ${err}`);
     } finally {
       conn.release();
     }
