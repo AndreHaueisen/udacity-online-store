@@ -1,5 +1,6 @@
 import client from '../../../src/database';
 import { UserStore, User } from '../../../src/models/user';
+import { clearTestTables } from '../utils/utils';
 
 const store = new UserStore(10, 'pepper');
 
@@ -79,6 +80,7 @@ describe('User model', () => {
   });
 
   afterAll(async () => {
+    await clearTestTables();
     await client.end();
   });
 });

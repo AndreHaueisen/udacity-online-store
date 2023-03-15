@@ -1,6 +1,7 @@
 import { OrderStore, Order, OrderStatus, ProductOrder } from '../../../src/models/order';
 import { UserStore, User } from '../../../src/models/user';
 import { ProductStore } from '../../../src/models/product';
+import { clearTestTables } from '../utils/utils';
 import client from '../../../src/database';
 
 const userStore = new UserStore(10, 'pepper');
@@ -150,7 +151,7 @@ describe('Order Model', () => {
   });
 
   afterAll(async () => {
-    await clearTables();
+    await clearTestTables();
     await client.end();
   });
 });
@@ -158,11 +159,4 @@ describe('Order Model', () => {
 async function getFakeUser(): Promise<User> {
   const users = await userStore.index();
   return users[0];
-}
-
-async function clearTables(): Promise<void> {
-  await client.query('DELETE FROM product_order');
-  await client.query('DELETE FROM orders');
-  await client.query('DELETE FROM users');
-  await client.query('DELETE FROM products');
 }

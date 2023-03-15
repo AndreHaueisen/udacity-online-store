@@ -28,11 +28,12 @@ export type ProductInput = {
 };
 
 export class ProductStore extends Store {
+  // returns all products ordered by name
   async index(): Promise<Product[]> {
     const conn = await super.connectToDB();
 
     try {
-      const sql = 'SELECT * FROM products';
+      const sql = 'SELECT * FROM products ORDER BY name';
       const result = await conn.query(sql);
 
       return result.rows.map(Product.fromRow);
