@@ -16,7 +16,7 @@ BCRYPT_SALT_ROUNDS=<number_of_salt_rounds>
 TOKEN_SECRET=<your_token_secret>
 ```
 
-2 - Create a database.json in the project's root folder that should contain
+2 - Edit the database.json file in the project's root folder with your database credentials. The file should look like this:
 
 ```
 {
@@ -37,34 +37,39 @@ TOKEN_SECRET=<your_token_secret>
 }
 ```
 
-3 - Create the dev and test databases by running the following commands in your terminal:
+3 - Connect to the pSQL default database by running the following command in your terminal:
+```
+psql -U postgres
+```
+
+4 - Create the dev and test databases by running the following commands in your terminal:
 
 ```
 createdb online_store
 createdb online_store_test
 ```
 
-4 - Create a database user by running the following command:
+5 - Create a database user by running the following command:
 ```
 createuser <your_user>
 ```
 
-5 - Give the user full access to the dev and test databases by running the following commands:
+6 - Give the user full access to the dev and test databases by running the following commands:
 ```
-psql online_store
+psql online_store (or of you are already connected to the database, run `\c online_store`)
 grant all privileges on database online_store to <your_user>;
 
-psql online_store_test
+psql online_store_test (or of you are already connected to the database, run `\c online_store_test`)
 grant all privileges on database online_store_test to <your_user>;
 ```
 
-6 - The backend port number is set to 3000. The database port number is set to 5432.
+7 - The backend port number is set to 3000. The database port number is set to 5432.
 
-7 - To build the projext use `npm run build`
+8 - To build the projext use `npm run build`
 
-8 - To run the tests use `npm run test`
+9 - To run the tests use `npm run test`
 
-9 - To start your server locally use `npm run start`
+10 - To start your server locally use `npm run start`
 
 ## pSQL Tables
 

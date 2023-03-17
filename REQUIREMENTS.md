@@ -40,3 +40,50 @@ These are the notes from a meeting with the frontend developer that describe wha
 - user_id
 - status of order (active or complete)
 
+## Database Schema
+
+This database contains four tables: `users`, `products`, `orders`, and `product_order`.
+
+#### Table `users`
+
+This table stores user information.
+
+| Column     | Data Type   | Constraints                      |
+|------------|-------------|---------------------------------|
+| id         | UUID        | PRIMARY KEY, DEFAULT uuid_generate_v4() |
+| first_name | VARCHAR(50) | NOT NULL                        |
+| last_name  | VARCHAR(120)| NOT NULL                        |
+| password   | VARCHAR     | NOT NULL                        |
+
+#### Table `products`
+
+This table stores product information.
+
+| Column  | Data Type   | Constraints                      |
+|---------|-------------|---------------------------------|
+| id      | UUID        | PRIMARY KEY, DEFAULT uuid_generate_v4() |
+| name    | VARCHAR(120)| NOT NULL                        |
+| price   | INTEGER     | NOT NULL                        |
+| category| VARCHAR(30) |                                 |
+
+#### Table `orders`
+
+This table stores order information.
+
+| Column     | Data Type   | Constraints                                 |
+|------------|-------------|--------------------------------------------|
+| id         | UUID        | PRIMARY KEY, DEFAULT uuid_generate_v4()      |
+| created_at | TIMESTAMP   | NOT NULL, DEFAULT NOW()                     |
+| user_id    | UUID        | NOT NULL, REFERENCES users(id)              |
+| status     | VARCHAR(20) | NOT NULL                                   |
+
+#### Table `product_order`
+
+This table stores information about the products ordered in each order.
+
+| Column     | Data Type   | Constraints                            |
+|------------|-------------|---------------------------------------|
+| id         | UUID        | PRIMARY KEY, DEFAULT uuid_generate_v4()|
+| order_id   | UUID        | NOT NULL, REFERENCES orders(id)       |
+| product_id | UUID        | NOT NULL, REFERENCES products(id)     |
+| quantity   | INTEGER     | NOT NULL                               |
