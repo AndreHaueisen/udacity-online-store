@@ -58,7 +58,7 @@ psql online_store_test
 grant all privileges on database online_store_test to <your_user>;
 ```
 
-6 - The port number is set to 3000
+6 - The backend port number is set to 3000. The database port number is set to 5432.
 
 7 - To build the projext use `npm run build`
 

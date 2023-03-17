@@ -5,7 +5,7 @@ import { verifyAuthToken } from '../../utils/helpers';
 const orders = express.Router();
 const store = new OrderStore();
 
-orders.get('/', async (_, res) => {
+orders.get('/', verifyAuthToken, async (_, res) => {
   try {
     const orders = await store.index();
     res.json(orders);
@@ -15,7 +15,7 @@ orders.get('/', async (_, res) => {
   }
 });
 
-orders.get('/:id', async (req, res) => {
+orders.get('/:id', verifyAuthToken, async (req, res) => {
   const id = req.params.id;
 
   try {
