@@ -1,0 +1,16 @@
+{
+    "dev": {
+      "driver": "pg",
+      "host": "127.0.0.1",
+      "database": "online_store",
+      "user": "node_client",
+      "password": "haueisen10"
+    },
+    "test": {
+      "driver": "pg",
+      "host": "127.0.0.1",
+      "database": "online_store_test",
+      "user": "node_client",
+      "password": "haueisen10"
+    }
+}
