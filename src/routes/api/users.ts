@@ -12,7 +12,7 @@ users.get('/', verifyAuthToken, async (_, res) => {
     res.json(users);
   } catch (err) {
     console.log(err);
-    res.status(400).json(err);
+    res.status(500).json(err);
   }
 });
 
@@ -24,7 +24,7 @@ users.get('/:id', verifyAuthToken, async (req, res) => {
     res.json(user);
   } catch (err) {
     console.log(err);
-    res.status(400).json(err);
+    res.status(500).json(err);
   }
 });
 
@@ -50,7 +50,7 @@ users.post('/', async (req, res) => {
     res.json(token);
   } catch (err) {
     console.log(err);
-    res.status(400).json(err);
+    res.status(500).json(err);
   }
 });
 

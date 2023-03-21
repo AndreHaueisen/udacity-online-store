@@ -11,7 +11,7 @@ orders.get('/', verifyAuthToken, async (_, res) => {
     res.json(orders);
   } catch (err) {
     console.log(err);
-    res.status(400).json(err);
+    res.status(500).json(err);
   }
 });
 
@@ -23,7 +23,7 @@ orders.get('/:id', verifyAuthToken, async (req, res) => {
     res.json(order);
   } catch (err) {
     console.log(err);
-    res.status(400).json(err);
+    res.status(500).json(err);
   }
 });
 
@@ -35,7 +35,7 @@ orders.get('/currentOrder/:userId', verifyAuthToken, async (req, res) => {
     res.json(order);
   } catch (err) {
     console.log(err);
-    res.status(400).json(err);
+    res.status(500).json(err);
   }
 });
 
@@ -47,7 +47,7 @@ orders.post('/completedOrders/:userId', verifyAuthToken, async (req, res) => {
     res.json(orders);
   } catch (err) {
     console.log(err);
-    res.status(400).json(err);
+    res.status(500).json(err);
   }
 });
 
@@ -59,7 +59,7 @@ orders.post('/', verifyAuthToken, async (req, res) => {
     res.json(order);
   } catch (err) {
     console.log(err);
-    res.status(400).json(err);
+    res.status(500).json(err);
   }
 });
 
@@ -72,7 +72,7 @@ orders.post('/:id/addProduct', verifyAuthToken, async (req, res) => {
     res.json(productOrder);
   } catch (err) {
     console.log(err);
-    res.status(400).json(err);
+    res.status(500).json(err);
   }
 });
 
@@ -84,7 +84,7 @@ orders.post('/:id/complete', verifyAuthToken, async (req, res) => {
     res.json(order);
   } catch (err) {
     console.log(err);
-    res.status(400).json(err);
+    res.status(500).json(err);
   }
 });
 

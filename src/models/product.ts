@@ -27,6 +27,18 @@ export type ProductInput = {
   category: string | null;
 };
 
+export function isProductInput(body: unknown): body is ProductInput {
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    'name' in body &&
+    typeof body.name === 'string' &&
+    'price' in body &&
+    typeof body.price === 'number' &&
+    ('category' in body ? typeof body.category === 'string' || body.category === null : true)
+  );
+}
+
 export class ProductStore extends Store {
   // returns all products ordered by name
   async index(): Promise<Product[]> {

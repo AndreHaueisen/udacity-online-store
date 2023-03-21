@@ -56,10 +56,10 @@ createuser <your_user>
 
 6 - Give the user full access to the dev and test databases by running the following commands:
 ```
-psql online_store (or of you are already connected to the database, run `\c online_store`)
+psql online_store (or of you are already connected to the database, run \c online_store)
 grant all privileges on database online_store to <your_user>;
 
-psql online_store_test (or of you are already connected to the database, run `\c online_store_test`)
+psql online_store_test (or of you are already connected to the database, run \c online_store_test)
 grant all privileges on database online_store_test to <your_user>;
 ```
 
