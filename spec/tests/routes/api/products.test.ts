@@ -1,18 +1,22 @@
 import request from 'supertest';
 import express from 'express';
 import client from '../../../../src/database';
+import { User } from '../../../../src/models/user';
 
-import { createTestUser, clearTestTables } from '../../utils/utils';
+import { createTestUser, authenticateTestUser, clearTestTables } from '../../utils/utils';
 import routes from '../../../../src/routes/index';
 
 const app = express();
 app.use(express.json());
 app.use('/', routes);
 
+let user: User;
 let token: string;
 
 beforeAll(async () => {
-  token = await createTestUser(app);
+  user = await createTestUser(app);
+
+  token = await authenticateTestUser(app, user);
 });
 
 describe('Products API', () => {

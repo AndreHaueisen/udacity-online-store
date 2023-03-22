@@ -22,10 +22,34 @@ export type UserInput = {
   password: string;
 };
 
+export function isUserInput(body: unknown): body is UserInput {
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    'firstName' in body &&
+    typeof body.firstName === 'string' &&
+    'lastName' in body &&
+    typeof body.lastName === 'string' &&
+    'password' in body &&
+    typeof body.password === 'string'
+  );
+}
+
 export type AuthenticationInput = {
   id: string;
   password: string;
 };
+
+export function isAuthenticationInput(body: unknown): body is AuthenticationInput {
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    'id' in body &&
+    typeof body.id === 'string' &&
+    'password' in body &&
+    typeof body.password === 'string'
+  );
+}
 
 export class UserStore extends Store {
   constructor(readonly saltRounds: number, readonly pepper: string) {
@@ -92,11 +116,13 @@ export class UserStore extends Store {
 
       if (result.rows.length) {
         const user = User.fromRow(result.rows[0]);
+
         if (bcrypt.compareSync(authenticationInput.password + this.pepper, user.password)) {
           return user;
         }
       }
 
+      console.log('------------------------------ no user found');
       return null;
     } catch (err) {
       throw new Error(`Unable to authenticate user ${authenticationInput.id}. ${err}`);

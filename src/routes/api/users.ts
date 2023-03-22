@@ -1,5 +1,5 @@
 import express from 'express';
-import { AuthenticationInput, UserInput, UserStore } from '../../models/user';
+import { AuthenticationInput, isAuthenticationInput, UserInput, isUserInput, UserStore } from '../../models/user';
 import { verifyAuthToken } from '../../utils/helpers';
 import jwt from 'jsonwebtoken';
 
@@ -28,29 +28,43 @@ users.get('/:id', verifyAuthToken, async (req, res) => {
   }
 });
 
-users.get('/authenticate', async (req, res) => {
+users.post('/authenticate', async (req, res) => {
   const authenticationInput = req.body as AuthenticationInput;
 
-  try {
-    const user = await store.authenticate(authenticationInput);
-    const token = jwt.sign({ user }, process.env.TOKEN_SECRET!);
-    res.json(token);
-  } catch (err) {
-    console.log(err);
-    res.status(401).json(err);
+  if (isAuthenticationInput(authenticationInput)) {
+    try {
+      const user = await store.authenticate(authenticationInput);
+      if (!user) {
+        throw new Error('Invalid authentication input');
+      }
+
+      console.log('------------- user: ', user);
+      const token = jwt.sign({ user }, process.env.TOKEN_SECRET!);
+      res.json(token);
+    } catch (err) {
+      console.log(err);
+      res.status(401).json(err);
+    }
+  } else {
+    res.status(400).json('Invalid authentication input');
   }
 });
 
 users.post('/', async (req, res) => {
   const userInput = req.body as UserInput;
 
-  try {
-    const user = await store.create(userInput);
-    const token = jwt.sign({ user }, process.env.TOKEN_SECRET!);
-    res.json(token);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
+  if (isUserInput(userInput)) {
+    try {
+      const user = await store.create(userInput);
+      jwt.sign({ user }, process.env.TOKEN_SECRET!);
+
+      res.json(user);
+    } catch (err) {
+      console.log(err);
+      res.status(500).json(err);
+    }
+  } else {
+    res.status(400).json('Invalid user input');
   }
 });
 
