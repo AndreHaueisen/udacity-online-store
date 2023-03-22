@@ -1,5 +1,5 @@
 import express from 'express';
-import { AddProductInput, OrderStore } from '../../models/order';
+import { AddProductInput, OrderStore, isCreateOrderInput, isAddProductInput } from '../../models/order';
 import { verifyAuthToken } from '../../utils/helpers';
 
 const orders = express.Router();
@@ -39,7 +39,7 @@ orders.get('/currentOrder/:userId', verifyAuthToken, async (req, res) => {
   }
 });
 
-orders.post('/completedOrders/:userId', verifyAuthToken, async (req, res) => {
+orders.get('/completedOrders/:userId', verifyAuthToken, async (req, res) => {
   const userId = req.params.userId;
 
   try {
@@ -54,12 +54,16 @@ orders.post('/completedOrders/:userId', verifyAuthToken, async (req, res) => {
 orders.post('/', verifyAuthToken, async (req, res) => {
   const productInput = req.body;
 
-  try {
-    const order = await store.create(productInput);
-    res.json(order);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
+  if (isCreateOrderInput(productInput)) {
+    try {
+      const order = await store.create(productInput);
+      res.json(order);
+    } catch (err) {
+      console.log(err);
+      res.status(500).json(err);
+    }
+  } else {
+    res.status(400).json('Invalid order input');
   }
 });
 
@@ -67,16 +71,20 @@ orders.post('/:id/addProduct', verifyAuthToken, async (req, res) => {
   const id = req.params.id;
   const addProductInput: AddProductInput = req.body;
 
-  try {
-    const productOrder = await store.addProduct(id, addProductInput);
-    res.json(productOrder);
-  } catch (err) {
-    console.log(err);
-    res.status(500).json(err);
+  if (isAddProductInput(addProductInput)) {
+    try {
+      const productOrder = await store.addProduct(id, addProductInput);
+      res.json(productOrder);
+    } catch (err) {
+      console.log(err);
+      res.status(500).json(err);
+    }
+  } else {
+    res.status(400).json('Invalid product input');
   }
 });
 
-orders.post('/:id/complete', verifyAuthToken, async (req, res) => {
+orders.put('/:id/complete', verifyAuthToken, async (req, res) => {
   const id = req.params.id;
 
   try {

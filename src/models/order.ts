@@ -28,6 +28,10 @@ export type CreateOrderInput = {
   userId: string;
 };
 
+export function isCreateOrderInput(body: unknown): body is CreateOrderInput {
+  return typeof body === 'object' && body !== null && 'userId' in body && typeof body.userId === 'string';
+}
+
 // ProductOrder ----------------------------------------------------------------
 
 export class ProductOrder {
@@ -49,6 +53,17 @@ export type AddProductInput = {
   productId: string;
   productQuantity: number;
 };
+
+export function isAddProductInput(body: unknown): body is AddProductInput {
+  return (
+    typeof body === 'object' &&
+    body !== null &&
+    'productId' in body &&
+    typeof body.productId === 'string' &&
+    'productQuantity' in body &&
+    typeof body.productQuantity === 'number'
+  );
+}
 
 export class OrderStore extends Store {
   async index(): Promise<Order[]> {

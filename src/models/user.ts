@@ -122,7 +122,6 @@ export class UserStore extends Store {
         }
       }
 
-      console.log('------------------------------ no user found');
       return null;
     } catch (err) {
       throw new Error(`Unable to authenticate user ${authenticationInput.id}. ${err}`);

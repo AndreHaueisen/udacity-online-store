@@ -15,7 +15,6 @@ let token: string;
 
 beforeAll(async () => {
   user = await createTestUser(app);
-
   token = await authenticateTestUser(app, user);
 });
 
@@ -74,9 +73,9 @@ describe('Products API', () => {
 
     expect(response.status).toBe(500);
   });
+});
 
-  afterAll(async () => {
-    await clearTestTables();
-    await client.end();
-  });
+afterAll(async () => {
+  await clearTestTables();
+  await client.end();
 });

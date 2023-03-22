@@ -38,7 +38,6 @@ users.post('/authenticate', async (req, res) => {
         throw new Error('Invalid authentication input');
       }
 
-      console.log('------------- user: ', user);
       const token = jwt.sign({ user }, process.env.TOKEN_SECRET!);
       res.json(token);
     } catch (err) {
